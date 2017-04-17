@@ -1,0 +1,261 @@
+<html>
+<head>
+<title>Landscaper</title>
+<style>
+body{
+	background-color: #777;
+	text-align: center;
+}
+
+#gameboard{
+  position: relative;
+  width: 400px;
+  height: 400px;
+  left: 50%;
+  margin-left: -200px;
+}
+
+.cell{
+  margin: 0;
+  padding: 0;
+  background-color: #042;
+  box-shadow: 0px 0px 3px #000 inset;/**/
+  float: left;
+}
+
+.bush{
+	background-color:#700;
+}
+.tree{
+	background-color:#007;
+}
+</style>
+
+<script lang="text/javascript">
+var gameCells=[]
+var testLevel = '{"size":"4", "cell1":"00t", "cell2":"21t", "cell3":"31b", "cell4":"13b"}';
+
+function parseCellType(cell){
+	if(cell.className.search("\b*bush\b*") > 0){
+		return "bush";
+	}
+	else if(cell.className.search("\b*tree\b*") > 0){
+		return "tree";
+	}
+	else{
+		return "blank";
+	}
+}
+function parseCellRow(cell){
+	var patt = /row(\d+)/
+	var y = patt.exec(cell.id);
+	return y[1];
+}
+function parseCellCol(cell){
+var patt = /col(\d+)/
+	var x = patt.exec(cell.id);
+	return x[1];
+}
+
+function cycle(e){
+	if(e.target !== e.currentTarget){
+		var cell = e.target;
+		if(parseCellType(cell) === "bush"){
+			cell.className = "cell tree";
+		}
+		else if(parseCellType(cell) === "tree"){
+			cell.className = "cell";
+		}
+		else{
+			cell.className = "cell bush";
+		}
+	}
+	testVictory();
+	e.stopPropagation();
+	
+	//console.log(obj);
+}
+
+function genBoard(x){
+
+board = document.getElementById("gameboard");
+boardWidth = board.offsetWidth;
+
+while (board.hasChildNodes()) {
+    board.removeChild(board.childNodes[0]);  
+}
+
+for(var i = 0; i < x; i ++){
+	rowOfCells = []
+	for(var k = 0; k < x; k++){
+		var cell = document.createElement("div");
+		cell.className = "cell";
+		cell.id = "row" + i + "col" + k
+		cell.style.width = Math.floor(boardWidth/x)
+		cell.style.height = cell.style.width
+		board.appendChild(cell);
+		rowOfCells[k] = cell;
+  }
+  gameCells.push(rowOfCells);
+}
+var gameboard = document.querySelector("#gameboard");
+gameboard.addEventListener("click", cycle, false);
+
+}
+
+function genLevel(jso){
+	obj = JSON.parse(jso);
+	for( cell in obj){
+		if(cell === "size"){
+			genBoard(obj[cell])
+		}
+		else{
+			current = obj[cell];
+			var x = current[0];
+			var y = current[1];
+			var type = current[2];
+			
+			if(type === "t"){
+				//Tree
+				gameCells[x][y].className = 'cell tree';
+			}
+			else if(type === 'b'){
+				//Bush
+				gameCells[x][y].className = 'cell bush';
+			}
+		}
+	}
+}
+
+/*To do:
+	Test victory - Done
+		functions to test cell type
+		Check type count
+		Check for triple cells
+	Improve CSS - Pretty much wait until React
+	Make grid creation more robust - Done
+	Pregen levels - Done
+	Level Progression - should be done in react
+*/
+
+function testVictory(){
+	let rowsPassed = checkCounts('row');
+	let colsPassed = checkCounts('col');
+	let triplesPassed = checkTriples();
+	let dupeRowsPassed = checkDuplicates('row')
+	let dupeColsPassed = checkDuplicates('col')
+	
+	if(rowsPassed === true && colsPassed === true && triplesPassed === true && dupeRowsPassed === true && dupeColsPassed === true){
+		console.log("Win!");
+	}
+	else{
+		/*console.log("rowsPassed: " + rowsPassed);
+		console.log("colsPassed: " + colsPassed);
+		console.log("triplesPassed: " + triplesPassed);*/
+		console.log("DupeRows: " + dupeRowsPassed)
+		console.log("DupeCols: " + dupeColsPassed)
+	}
+}
+
+function checkCounts(countDirection){
+	//Test that row has same number of trees and bushes
+	for(var i = 0; i < gameCells.length; i++){
+		var treeCount = 0;
+		var bushCount = 0;
+		
+		for(var k = 0; k < gameCells.length; k++){
+			if(countDirection === 'row'){
+				var cell = gameCells[i][k];
+			}
+			else if(countDirection === 'col'){
+				var cell = gameCells[k][i];
+			}
+			else{
+				return false;
+			}
+			
+		
+			if(parseCellType(cell) === "bush"){
+				bushCount += 1;
+			}
+			else if(parseCellType(cell) === "tree"){
+				treeCount += 1;
+			}
+			else{
+				//Still an unfiled cell on the board
+				return false;
+			}
+		}
+		if(treeCount != bushCount){
+			return false;
+		}
+	}
+	return true;
+}
+function checkTriples(){
+	for(var i = 0; i < gameCells.length; i++){
+		for(var k = 0; k < gameCells.length; k++){
+			
+			if(i > 0 && i < gameCells.length - 1){
+				//Check types
+				cell1 = parseCellType(gameCells[i-1][k]);
+				cell2 = parseCellType(gameCells[i][k]);
+				cell3 = parseCellType(gameCells[i+1][k]);
+				
+				if(cell1 === cell2 && cell1 === cell3){
+					return false;
+				}
+			}
+			
+			if(k > 0 && k < gameCells.length - 1){
+				//Check types
+				cell1 = parseCellType(gameCells[i][k-1]);
+				cell2 = parseCellType(gameCells[i][k]);
+				cell3 = parseCellType(gameCells[i][k+1]);
+				
+				if(cell1 === cell2 && cell1 === cell3){
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+function checkDuplicates(testDirection){
+	for(var i = 0; i < gameCells.length; i++){
+		for(var j = i+1; j < gameCells.length; j++){
+			for(var k = 0; k < gameCells.length; k++){
+				//Decide rows or columns
+				if(testDirection === 'row'){
+					var cell1 = parseCellType(gameCells[i][k]);
+					var cell2 = parseCellType(gameCells[j][k]);
+				}
+				else if(testDirection === 'col'){
+					var cell1 = parseCellType(gameCells[k][i]);
+					var cell2 = parseCellType(gameCells[k][j]);
+				}
+				else{return false;}
+			
+				if(cell1 === cell2 && k === gameCells.length - 1){
+					return false;
+				}
+				else if(cell1 != cell2){
+					break;
+				}
+			}
+		}
+	}
+	return true;
+}
+</script>
+</head>
+<body>
+
+<div id="gameboard">
+</div>
+<button onclick="genLevel(testLevel)">
+Gen
+</button>
+
+</body>
+</html>
