@@ -110,8 +110,8 @@ class Gameboard extends React.Component{
 			// console.log("rowsPassed: " + rowsPassed);
 			// console.log("colsPassed: " + colsPassed);
 			// console.log("triplesPassed: " + triplesPassed);
-			// console.log("DupeRows: " + dupeRowsPassed);
-			// console.log("DupeCols: " + dupeColsPassed);
+			 console.log("DupeRows: " + dupeRowsPassed);
+			 console.log("DupeCols: " + dupeColsPassed);
 		}
 	}
 	checkCounts(countDirection){
@@ -197,17 +197,24 @@ class Gameboard extends React.Component{
 					if(testDirection === 'row'){
 						cell1 = gameCells[i][k];
 						cell2 = gameCells[j][k];
+						// console.log("Dir: " + testDirection + " i: " + i + " k: " + k + " j: " + j + " cell1: " + cell1 + " cell2: " + cell2);
 					}
 					else if(testDirection === 'col'){
 						cell1 = gameCells[k][i];
 						cell2 = gameCells[k][j];
 					}
 					else{return false;}
+					
+					// console.log("Dir: " + testDirection + " Cell1: " + cell1 + " Cell2: " + cell2)
+					// console.log("cell1 === cell2: ")
+					// console.log(cell1[2].toUpperCase() === cell2[2].toUpperCase())
+					// console.log("End of row/col: " + k)
+					// console.log(k === gameCells.length - 1)
 				
-					if(cell1[2] === cell2[2] && k === gameCells.length - 1){
+					if(cell1[2].toUpperCase() === cell2[2].toUpperCase() && k === gameCells.length - 1){
 						return false;
 					}
-					else if(cell1 !== cell2){
+					else if(cell1[2].toUpperCase() !== cell2[2].toUpperCase()){
 						break;
 					}
 				}

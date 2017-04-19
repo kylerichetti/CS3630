@@ -1,5 +1,6 @@
 import React from 'react';
 import Gameboard from './gameboard.js';
+import './game.css'
 import {puzzleList} from './puzzles.js';
 
 class Game extends React.Component{
